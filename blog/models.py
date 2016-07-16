@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 # Create your models here.
 class Post(models.Model):
@@ -17,4 +18,14 @@ class Post(models.Model):
 
         def __str__(self):
             return self.title
+
+class Profile(models.Model):
+        user = models.OneToOneField(User, on_delete=models.CASCADE)
+        email = models.EmailField()
+        avatar = models.ImageField()
+        last_ip = models.GenericIPAddressField()
+        current_ip = models.GenericIPAddressField()
+        character_name = models.CharField(max_length=25)
+        
+
 
