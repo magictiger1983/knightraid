@@ -1,14 +1,27 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from .models import Post
-from .forms import PostForm
+from .models import Post, Comment
+from .forms import PostForm, CommentForm
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # Create your views here.
 
 def post_list(request):
     posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('-published_date')
-    return render(request, 'blog/post_list.html', { 'posts': posts })
+    paginator = Paginator(posts, 10)
+    page = request.GET.get('page')
+    try:
+        posts_list = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        posts_list = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        posts_list = paginator.page(paginator.num_pages)
+
+    return render(request, 'blog/post_list.html', { 'posts': posts_list })
 
 def post_detail(request, pk):
     post = get_object_or_404(Post, pk=pk)
@@ -22,7 +35,10 @@ def post_new(request):
             post =form.save(commit=False)
             post.author = request.user
             post.save()
+            messages.success(request, "New post created successfully")
             return redirect('post_detail', pk=post.pk)
+        else:
+            messages.error(request, "Error: Field validation failed")
     else:
         form = PostForm()
     return render(request, 'blog/post_edit.html', { 'form': form })
@@ -36,7 +52,10 @@ def post_edit(request, pk):
             post = form.save(commit=False)
             post.author = request.user
             post.save()
+            messages.success(request, "Post updated")
             return redirect('post_detail', pk=post.pk)
+        else:
+            messages.error(request, "Error: Field validation failed")
     else:
         form = PostForm(instance=post)
     return render(request, 'blog/post_edit.html', { 'form': form })
@@ -57,3 +76,31 @@ def post_remove(request, pk):
     post = get_object_or_404(Post, pk=pk)
     post.delete()
     return redirect('blog.views.post_list')
+
+@login_required
+def add_comment_to_post(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if request.method == "POST":
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.save()
+            return redirect('blog.views.post_detail', pk=post.pk)
+    else:
+        form = CommentForm()
+    return render(request, 'blog/add_comment_to_post.html', {'form': form})
+
+@login_required
+def comment_approve(request, pk):
+    comment = get_object_or_404(Comment, pk=pk)
+    comment.approve()
+    return redirect('blog.views.post_detail', pk=comment.post.pk)
+
+@login_required
+def comment_remove(request, pk):
+    comment = get_object_or_404(Comment, pk=pk)
+    post_pk = comment.post.pk
+    comment.delete()
+    return redirect('blog.views.post_detail', pk=post_pk)
+

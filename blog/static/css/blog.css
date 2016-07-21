@@ -4,11 +4,12 @@ body {
 }
 
 h1 {
-	color:#05C005;
+    color: #000000;
+    font-family: 'Open Sans', sans-serif;
 }
 
 h1 a {
-	color: #FCA205;
+	color: #000000;
 	font-family: 'Open Sans', sans-serif;
 }
 
@@ -26,10 +27,6 @@ h1 a {
 
 .content {
     margin-left: 40px;
-}
-
-h1, h2, h3, h4 {
-    font-family: 'Lobster', cursive;
 }
 
 .date {
@@ -57,4 +54,8 @@ h1, h2, h3, h4 {
 
 .post h1 a, .post h1 a:visited {
     color: #000000;
+}
+
+.comment {
+    margin: 20px 0px 20px 20px;
 }
