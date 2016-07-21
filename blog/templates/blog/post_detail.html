@@ -2,7 +2,9 @@
 
 {% block content %}
 	<div class="post">
-		
+		{% if post.image %}
+		<img src="{{ post.image.url}} " class="img-responsive" />
+		{% endif %}
 		<h1>{{ post.title }}</h1>
 			<div class="date">
 				{% if post.published_date %}
